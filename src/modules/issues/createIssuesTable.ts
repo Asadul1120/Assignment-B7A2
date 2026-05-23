@@ -19,7 +19,6 @@ const createIssuesTable = async () => {
     );
   `);
 
-  console.log("Issues table created successfully");
 };
 
 export default createIssuesTable;

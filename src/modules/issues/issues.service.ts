@@ -2,7 +2,7 @@ import type { Issue, QueryParams } from "./issues.interface";
 import { pool } from "../../config/db";
 
 const createIssueService = async (payload: Issue) => {
-  const { title, description, type, status, reporter_id } = payload;
+  const { title, description, type, reporter_id } = payload;
 
   const result = await pool.query(
     `
@@ -11,7 +11,7 @@ const createIssueService = async (payload: Issue) => {
     VALUES ($1, $2, $3, $4, $5)
     RETURNING *
     `,
-    [title, description, type, status || "open", reporter_id],
+    [title, description, type, "open", reporter_id],
   );
 
   return result.rows[0];
@@ -57,7 +57,7 @@ const updateIssueService = async (
   payload: Issue,
   currentUser: { id: number; role: string },
 ) => {
-  const { title, description, type } = payload;
+  const { title, description, type, status } = payload;
 
   const findingIssue = await pool.query(`SELECT * FROM issues WHERE id = $1`, [
     id,
@@ -70,6 +70,7 @@ const updateIssueService = async (
   const issue = findingIssue.rows[0];
 
   if (currentUser.role === "contributor") {
+
     if (issue.reporter_id !== currentUser.id) {
       throw new Error("Unauthorized to update this issue");
     }
@@ -77,8 +78,24 @@ const updateIssueService = async (
     if (issue.status !== "open") {
       throw new Error("You can only update open issues");
     }
+    const result = await pool.query(
+      `
+      UPDATE issues
+      SET
+        title = $1,
+        description = $2,
+        type = $3,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $4
+      RETURNING *
+      `,
+      [title, description, type, id],
+    );
+
+    return result.rows[0];
   }
 
+  // If user is maintainer, they can update any issue and also update status
   const result = await pool.query(
     `
     UPDATE issues
@@ -86,11 +103,12 @@ const updateIssueService = async (
       title = $1,
       description = $2,
       type = $3,
+      status = $4,
       updated_at = CURRENT_TIMESTAMP
-    WHERE id = $4
+    WHERE id = $5
     RETURNING *
     `,
-    [title, description, type, id],
+    [title, description, type, status, id],
   );
 
   return result.rows[0];

@@ -26,7 +26,7 @@ const auth = (...roles: string[]) => {
       const user = userData.rows[0];
 
       if (userData.rows.length === 0) {
-        res.status(404).json({
+        return res.status(404).json({
           success: false,
           message: "User not found!",
         });
@@ -35,14 +35,14 @@ const auth = (...roles: string[]) => {
       req.user = decoded;
 
       if (roles.length && !roles.includes(user.role)) {
-        res.status(403).json({
+        return res.status(403).json({
           success: false,
           message: "Forbidden, insufficient permissions",
         });
       }
 
       next();
-    } catch (error: any) {
+    } catch (error: unknown) {
       return res.status(401).json({
         success: false,
         message: error instanceof Error ? error.message : "Unauthorized access",
