@@ -4,6 +4,7 @@ import {
   getIssuesService,
   updateIssueService,
   deleteIssueService,
+  getSingleIssueService,
 } from "./issues.service.js";
 import type { QueryParams } from "./issues.interface.js";
 const createIssueController = async (req: Request, res: Response) => {
@@ -34,6 +35,24 @@ const getIssuesController = async (req: Request, res: Response) => {
 
     res.status(200).json({
       success: true,
+      message: "Issues retrieved successfully",
+      data: result,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error instanceof Error ? error.message : "Something went wrong",
+    });
+  }
+};
+
+const getSingleIssueController = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const result = await getSingleIssueService(id);
+    res.status(200).json({
+      success: true,
+      message: "Issue retrived successfully",
       data: result,
     });
   } catch (error) {
@@ -84,4 +103,5 @@ export {
   getIssuesController,
   updateIssueController,
   deleteIssueController,
+  getSingleIssueController,
 };

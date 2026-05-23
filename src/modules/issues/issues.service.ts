@@ -21,6 +21,7 @@ const getIssuesService = async (query: QueryParams) => {
   const { sort, type, status } = query;
 
   let sql = `SELECT * FROM issues`;
+
   const values: string[] = [];
   const conditions: string[] = [];
 
@@ -35,7 +36,7 @@ const getIssuesService = async (query: QueryParams) => {
     conditions.push(`status = $${values.length}`);
   }
 
-  // where
+  // where condition
   if (conditions.length > 0) {
     sql += ` WHERE ${conditions.join(" AND ")}`;
   }
@@ -49,7 +50,65 @@ const getIssuesService = async (query: QueryParams) => {
 
   const result = await pool.query(sql, values);
 
-  return result.rows;
+  // fetch all reporter  
+  const issuesWithReporter = await Promise.all(
+    result.rows.map(async (issue) => {
+      const user = await pool.query(
+        `
+        SELECT id, name, role
+        FROM users
+        WHERE id = $1
+        `,
+        [issue.reporter_id],
+      );
+
+      return {
+        id: issue.id,
+        title: issue.title,
+        description: issue.description,
+        type: issue.type,
+        status: issue.status,
+        reporter: user.rows[0],
+        created_at: issue.created_at,
+        updated_at: issue.updated_at,
+      };
+    }),
+  );
+
+  return issuesWithReporter;
+};
+const getSingleIssueService = async (id: string) => {
+  const result = await pool.query(`SELECT * FROM issues WHERE id = $1`, [id]);
+
+  if (result.rows.length === 0) {
+    throw new Error("Issue not found");
+  }
+
+  const user = await pool.query(
+    `
+    SELECT id, name, role
+    FROM users
+    WHERE id = $1
+    `,
+    [result.rows[0].reporter_id],
+  );
+
+  result.rows[0].reporter = user.rows[0];
+
+  delete result.rows[0].reporter_id;
+
+  //final output
+  const issue = result.rows[0];
+  return {
+    id: issue.id,
+    title: issue.title,
+    description: issue.description,
+    type: issue.type,
+    status: issue.status,
+    reporter: issue.reporter,
+    created_at: issue.created_at,
+    updated_at: issue.updated_at,
+  };
 };
 
 const updateIssueService = async (
@@ -70,7 +129,6 @@ const updateIssueService = async (
   const issue = findingIssue.rows[0];
 
   if (currentUser.role === "contributor") {
-
     if (issue.reporter_id !== currentUser.id) {
       throw new Error("Unauthorized to update this issue");
     }
@@ -134,4 +192,5 @@ export {
   getIssuesService,
   updateIssueService,
   deleteIssueService,
+  getSingleIssueService,
 };
