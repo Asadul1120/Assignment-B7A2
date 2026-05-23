@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
-import { pool } from "../../config/db";
-import config from "../../config/index";
-import type { IUser } from "./auth.interface";
+import { pool } from "../../config/db.js";
+import config from "../../config/index.js";
+import type { IUser } from "./auth.interface.js";
 import jwt from "jsonwebtoken";
 
 const sigupService = async (payload: IUser) => {

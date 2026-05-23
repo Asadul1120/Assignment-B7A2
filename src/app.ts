@@ -1,7 +1,7 @@
 import express from "express";
 import type { Request, Response } from "express";
-import authRoutes from "./modules/auth/auth.route";
-import issuesRoutes from "./modules/issues/issues.route";
+import authRoutes from "./modules/auth/auth.route.js";
+import issuesRoutes from "./modules/issues/issues.route.js";
 import cookieParser from "cookie-parser";
 
 const app = express();

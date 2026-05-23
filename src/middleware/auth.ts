@@ -1,7 +1,7 @@
 import jwt, { type JwtPayload } from "jsonwebtoken";
 import type { Request, Response, NextFunction } from "express";
-import config from "../config";
-import { pool } from "../config/db";
+import config from "../config/index.js";
+import { pool } from "../config/db.js";
 
 const auth = (...roles: string[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {

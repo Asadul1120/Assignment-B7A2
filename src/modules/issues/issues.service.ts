@@ -1,5 +1,5 @@
-import type { Issue, QueryParams } from "./issues.interface";
-import { pool } from "../../config/db";
+import type { Issue, QueryParams } from "./issues.interface.js";
+import { pool } from "../../config/db.js";
 
 const createIssueService = async (payload: Issue) => {
   const { title, description, type, reporter_id } = payload;

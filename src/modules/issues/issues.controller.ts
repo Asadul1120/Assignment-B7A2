@@ -4,8 +4,8 @@ import {
   getIssuesService,
   updateIssueService,
   deleteIssueService,
-} from "./issues.service";
-import type { QueryParams } from "./issues.interface";
+} from "./issues.service.js";
+import type { QueryParams } from "./issues.interface.js";
 const createIssueController = async (req: Request, res: Response) => {
   try {
     const payload = {

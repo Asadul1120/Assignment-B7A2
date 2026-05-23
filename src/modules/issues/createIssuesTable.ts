@@ -1,4 +1,4 @@
-import { pool } from "../../config/db";
+import { pool } from "../../config/db.js";
 
 const createIssuesTable = async () => {
   await pool.query(`

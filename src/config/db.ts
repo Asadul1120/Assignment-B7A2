@@ -1,7 +1,7 @@
 import { Pool } from "pg";
-import config from "../config/index";
-import createUsersTable from "../modules/auth/createAuthTable";
-import createIssuesTable from "../modules/issues/createIssuesTable";
+import config from "../config/index.js";
+import createUsersTable from "../modules/auth/createAuthTable.js";
+import createIssuesTable from "../modules/issues/createIssuesTable.js";
 
 const pool = new Pool({
   connectionString: config.connection_string,

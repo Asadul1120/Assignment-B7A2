@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { generateFreshToken, loginService, sigupService } from "./auth.service";
+import { generateFreshToken, loginService, sigupService } from "./auth.service.js";
 
 const signUpController = async (req: Request, res: Response) => {
   try {
