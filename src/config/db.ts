@@ -7,9 +7,9 @@ const pool = new Pool({
   connectionString: config.connection_string,
 });
 
-const initDB = () => {
-  createUsersTable();
-  createIssuesTable();
+const initDB = async () => {
+  await createUsersTable();
+  await createIssuesTable();
   console.log("Database connected and tables initialized");
 };
 

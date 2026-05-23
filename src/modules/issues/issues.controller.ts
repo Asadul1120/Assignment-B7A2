@@ -7,6 +7,7 @@ import {
   getSingleIssueService,
 } from "./issues.service.js";
 import type { QueryParams } from "./issues.interface.js";
+
 const createIssueController = async (req: Request, res: Response) => {
   try {
     const payload = {
@@ -28,6 +29,7 @@ const createIssueController = async (req: Request, res: Response) => {
     });
   }
 };
+
 
 const getIssuesController = async (req: Request, res: Response) => {
   try {

@@ -1,8 +1,65 @@
 import type { Issue, QueryParams } from "./issues.interface.js";
 import { pool } from "../../config/db.js";
 
+const validTypes = ["bug", "feature_request"];
+const validStatuses = ["open", "in_progress", "resolved"];
+
+const validateIssuePayload = (
+  payload: Issue,
+  isCreate = false,
+  canUpdateStatus = false,
+) => {
+  const { title, description, type, status } = payload;
+
+  if (isCreate && (!title || !description || !type)) {
+    throw new Error("Title, description and type are required");
+  }
+
+  if (title !== undefined && (title.length === 0 || title.length > 150)) {
+    throw new Error("Title must be between 1 and 150 characters");
+  }
+
+  if (description !== undefined && description.length < 20) {
+    throw new Error("Description must be at least 20 characters");
+  }
+
+  if (type !== undefined && !validTypes.includes(type)) {
+    throw new Error("Invalid issue type");
+  }
+
+  if (status !== undefined && !canUpdateStatus) {
+    throw new Error("Only maintainer can update issue status");
+  }
+
+  if (status !== undefined && !validStatuses.includes(status)) {
+    throw new Error("Invalid issue status");
+  }
+};
+
+const validateQuery = (query: QueryParams) => {
+  const { sort, type, status } = query;
+
+  if (sort && sort !== "newest" && sort !== "oldest") {
+    throw new Error("Invalid sort value");
+  }
+
+  if (type && !validTypes.includes(type)) {
+    throw new Error("Invalid issue type");
+  }
+
+  if (status && !validStatuses.includes(status)) {
+    throw new Error("Invalid issue status");
+  }
+};
+
 const createIssueService = async (payload: Issue) => {
   const { title, description, type, reporter_id } = payload;
+
+  validateIssuePayload(payload, true);
+
+  if (!reporter_id) {
+    throw new Error("Reporter id is required");
+  }
 
   const result = await pool.query(
     `
@@ -19,6 +76,8 @@ const createIssueService = async (payload: Issue) => {
 
 const getIssuesService = async (query: QueryParams) => {
   const { sort, type, status } = query;
+
+  validateQuery(query);
 
   let sql = `SELECT * FROM issues`;
 
@@ -50,7 +109,7 @@ const getIssuesService = async (query: QueryParams) => {
 
   const result = await pool.query(sql, values);
 
-  // fetch all reporter  
+  // fetch all reporter
   const issuesWithReporter = await Promise.all(
     result.rows.map(async (issue) => {
       const user = await pool.query(
@@ -78,6 +137,10 @@ const getIssuesService = async (query: QueryParams) => {
   return issuesWithReporter;
 };
 const getSingleIssueService = async (id: string) => {
+  if (!id) {
+    throw new Error("Issue id is required");
+  }
+
   const result = await pool.query(`SELECT * FROM issues WHERE id = $1`, [id]);
 
   if (result.rows.length === 0) {
@@ -129,6 +192,8 @@ const updateIssueService = async (
   const issue = findingIssue.rows[0];
 
   if (currentUser.role === "contributor") {
+    validateIssuePayload(payload);
+
     if (issue.reporter_id !== currentUser.id) {
       throw new Error("Unauthorized to update this issue");
     }
@@ -147,11 +212,18 @@ const updateIssueService = async (
       WHERE id = $4
       RETURNING *
       `,
-      [title, description, type, id],
+      [
+        title ?? issue.title,
+        description ?? issue.description,
+        type ?? issue.type,
+        id,
+      ],
     );
 
     return result.rows[0];
   }
+
+  validateIssuePayload(payload, false, true);
 
   // If user is maintainer, they can update any issue and also update status
   const result = await pool.query(
@@ -166,7 +238,13 @@ const updateIssueService = async (
     WHERE id = $5
     RETURNING *
     `,
-    [title, description, type, status, id],
+    [
+      title ?? issue.title,
+      description ?? issue.description,
+      type ?? issue.type,
+      status ?? issue.status,
+      id,
+    ],
   );
 
   return result.rows[0];

@@ -4,7 +4,7 @@ import {
   getIssuesController,
   updateIssueController,
   deleteIssueController,
-  getSingleIssueController
+  getSingleIssueController,
 } from "./issues.controller.js";
 import auth from "../../middleware/auth.js";
 import { ROLE } from "../../types/index.js";
@@ -16,9 +16,9 @@ router.post(
   auth(ROLE.CONTRIBUTOR, ROLE.MAINTAINER),
   createIssueController,
 );
-router.get("/" , getIssuesController);
+router.get("/", getIssuesController);
 router.get("/:id", getSingleIssueController);
-router.patch("/:id", auth( ROLE.CONTRIBUTOR, ROLE.MAINTAINER), updateIssueController);
+router.patch("/:id", auth(ROLE.CONTRIBUTOR, ROLE.MAINTAINER), updateIssueController);
 router.delete("/:id", auth(ROLE.MAINTAINER), deleteIssueController);
 
 export default router;

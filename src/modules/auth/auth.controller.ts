@@ -1,5 +1,9 @@
 import type { Request, Response } from "express";
-import { generateFreshToken, loginService, sigupService } from "./auth.service.js";
+import {
+  generateFreshToken,
+  loginService,
+  sigupService,
+} from "./auth.service.js";
 
 const signUpController = async (req: Request, res: Response) => {
   try {
@@ -10,11 +14,11 @@ const signUpController = async (req: Request, res: Response) => {
       message: "User registered successfully",
       data: result,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     res.status(400).json({
       success: false,
       message: "User registration failed",
-      error: error.message,
+      error: (error as Error).message,
     });
   }
 };
@@ -23,7 +27,7 @@ const loginController = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
     const { token, user, refreshToken } = await loginService(email, password);
-   
+
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: false,
@@ -35,8 +39,10 @@ const loginController = async (req: Request, res: Response) => {
       message: "Login successful",
       data: { token: token, user },
     });
-  } catch (error: any) {
-    res.status(400).json({ success: false, message: error.message, error });
+  } catch (error: unknown) {
+    res
+      .status(400)
+      .json({ success: false, message: (error as Error).message, error });
   }
 };
 
@@ -48,10 +54,10 @@ const refreshTokenController = async (req: Request, res: Response) => {
       message: "Acess token generated!",
       data: result,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: (error as Error).message,
       error: error,
     });
   }

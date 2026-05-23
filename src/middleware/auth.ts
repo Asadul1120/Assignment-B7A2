@@ -12,16 +12,24 @@ const auth = (...roles: string[]) => {
         return res.status(401).json({
           success: false,
           message: "Unauthorized access, token missing",
+          errors: "Token missing",
         });
       }
 
       const decoded = jwt.verify(token, config.jwt_secret) as JwtPayload;
 
+      if (!decoded.id || !decoded.role) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid token payload",
+        });
+      }
+
       const userData = await pool.query(
         `
-     SELECT * FROM users WHERE email=$1   
+     SELECT * FROM users WHERE id=$1   
         `,
-        [decoded.email],
+        [decoded.id],
       );
       const user = userData.rows[0];
 
@@ -37,7 +45,8 @@ const auth = (...roles: string[]) => {
       if (roles.length && !roles.includes(user.role)) {
         return res.status(403).json({
           success: false,
-          message: "Forbidden, insufficient permissions",
+          message: "Forbidden!, insufficient permissions",
+
         });
       }
 
@@ -46,6 +55,7 @@ const auth = (...roles: string[]) => {
       return res.status(401).json({
         success: false,
         message: error instanceof Error ? error.message : "Unauthorized access",
+        errors: error,
       });
     }
   };

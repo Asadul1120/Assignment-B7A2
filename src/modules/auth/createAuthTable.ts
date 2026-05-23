@@ -7,7 +7,8 @@ const createUsersTable = async () => {
       name VARCHAR(100) NOT NULL,
       email VARCHAR(100) UNIQUE NOT NULL,
       password TEXT NOT NULL,
-      role VARCHAR(30)  DEFAULT 'contributor',
+      role VARCHAR(30) DEFAULT 'contributor'
+      CHECK (role IN ('contributor', 'maintainer')),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
